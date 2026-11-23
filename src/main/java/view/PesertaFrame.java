@@ -14,9 +14,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints;
-import java.awt.print.PrinterException;
 import java.sql.SQLException;
-import java.text.MessageFormat;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -35,12 +33,8 @@ import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import model.Peserta;
+import report.ReportService;
 
-/**
- * Master Data Peserta - SIKURSUS Desktop (Praktikum PBO Pertemuan 10).
- * CRUD lengkap + JTable + Search + Refresh + Reset + Cetak.
- * View hanya membaca input & menampilkan hasil; SQL ada di PesertaDAO.
- */
 public class PesertaFrame extends JFrame {
 
     private static final Color PINK_HEADER = new Color(0xE9, 0x4B, 0x9A);
@@ -61,7 +55,7 @@ public class PesertaFrame extends JFrame {
     private final ColorButton btnUbah = new ColorButton("Ubah", new Color(0x00, 0x5C, 0xC8));
     private final ColorButton btnHapus = new ColorButton("Hapus", new Color(0xE5, 0x4B, 0x4B));
     private final ColorButton btnReset = new ColorButton("Reset", new Color(0x6C, 0x84, 0xA8));
-    private final ColorButton btnCetak = new ColorButton("Cetak Semua", new Color(0x22, 0xB0, 0x6B));
+    private final ColorButton btnCetak = new ColorButton("Cetak", new Color(0x22, 0xB0, 0x6B));
 
     // ===== pencarian & tabel =====
     private final JTextField txtCari = new JTextField();
@@ -461,31 +455,9 @@ public class PesertaFrame extends JFrame {
         }
     }
 
-    // CETAK SEMUA (seluruh data dari database, bukan hanya hasil pencarian)
+    // CETAK LAPORAN JASPERSOFT STUDIO
     private void btnCetakActionPerformed() {
-        try {
-            DefaultTableModel model = new DefaultTableModel(
-                    new Object[]{"ID", "NIM", "Nama", "JK", "Prodi", "No. HP", "Email"}, 0);
-            for (Peserta p : dao.findAll()) {
-                model.addRow(new Object[]{p.getId(), p.getNim(), p.getNama(),
-                    p.getJenisKelamin(), p.getProdi(), p.getNoHp(), p.getEmail()});
-            }
-            JTable semua = new JTable(model);
-            boolean ok = semua.print(JTable.PrintMode.FIT_WIDTH,
-                    new MessageFormat("Data Peserta - SIKURSUS"),
-                    new MessageFormat("Halaman {0}"));
-            if (!ok) {
-                JOptionPane.showMessageDialog(this, "Pencetakan dibatalkan.");
-            }
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Gagal memuat data untuk dicetak: " + ex.getMessage(),
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
-        } catch (PrinterException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Gagal mencetak: " + ex.getMessage(),
-                    "Printer Error", JOptionPane.ERROR_MESSAGE);
-        }
+        ReportService.tampilkanLaporanPeserta();
     }
 
     // =====================================================================
