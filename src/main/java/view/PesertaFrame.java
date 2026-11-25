@@ -64,7 +64,7 @@ public class PesertaFrame extends JFrame {
 
     // ===== state =====
     private final PesertaDAO dao = new PesertaDAO();
-    private int selectedId = -1;   // -1 = belum ada data yang dipilih
+    private int selectedId = -1;
 
     public PesertaFrame() {
         setTitle("Master Peserta - SIKURSUS Desktop");
@@ -87,7 +87,6 @@ public class PesertaFrame extends JFrame {
         JPanel root = new JPanel(new BorderLayout(0, 10));
         root.setBackground(new Color(0xF4, 0xF7, 0xFC));
 
-        // --- header pink ---
         JLabel judul = new JLabel("Master Data Peserta", SwingConstants.CENTER);
         judul.setFont(judul.getFont().deriveFont(Font.BOLD, 20f));
         judul.setForeground(Color.WHITE);
@@ -97,7 +96,6 @@ public class PesertaFrame extends JFrame {
         header.add(judul, BorderLayout.CENTER);
         root.add(header, BorderLayout.NORTH);
 
-        // --- isi tengah ---
         JPanel body = new JPanel(new BorderLayout(0, 10));
         body.setOpaque(false);
         body.setBorder(BorderFactory.createEmptyBorder(0, 12, 12, 12));
@@ -107,14 +105,13 @@ public class PesertaFrame extends JFrame {
 
         setContentPane(root);
 
-        // --- event ---
         btnSimpan.addActionListener(e -> btnSimpanActionPerformed());
         btnUbah.addActionListener(e -> btnUbahActionPerformed());
         btnHapus.addActionListener(e -> btnHapusActionPerformed());
         btnReset.addActionListener(e -> btnResetActionPerformed());
         btnCetak.addActionListener(e -> btnCetakActionPerformed());
         btnCari.addActionListener(e -> btnCariActionPerformed());
-        txtCari.addActionListener(e -> btnCariActionPerformed());   // tekan Enter
+        txtCari.addActionListener(e -> btnCariActionPerformed());
         tblPeserta.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -128,7 +125,7 @@ public class PesertaFrame extends JFrame {
         p.setBackground(Color.WHITE);
         p.setBorder(titled("Form Peserta"));
 
-        cbProdi.setEditable(true);          // boleh pilih atau ketik prodi lain
+        cbProdi.setEditable(true);
         cbProdi.setSelectedIndex(-1);
 
         GridBagConstraints c = new GridBagConstraints();
@@ -182,7 +179,7 @@ public class PesertaFrame extends JFrame {
 
         c.gridx = 3;
         c.weightx = 1;
-        cari.add(new JLabel(), c);   // pendorong ke kiri
+        cari.add(new JLabel(), c);
 
         p.add(cari, BorderLayout.NORTH);
         p.add(new JScrollPane(tblPeserta), BorderLayout.CENTER);
@@ -224,7 +221,7 @@ public class PesertaFrame extends JFrame {
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false;   // edit lewat form, bukan lewat sel tabel
+                return false;
             }
         };
         tblPeserta.setModel(model);
@@ -243,7 +240,7 @@ public class PesertaFrame extends JFrame {
 
     private void fillTable(List<Peserta> data) {
         DefaultTableModel model = (DefaultTableModel) tblPeserta.getModel();
-        model.setRowCount(0);   // wajib: cegah data dobel
+        model.setRowCount(0);
         for (Peserta p : data) {
             model.addRow(new Object[]{
                 p.getId(),
@@ -342,7 +339,6 @@ public class PesertaFrame extends JFrame {
         if (row == -1) {
             return;
         }
-        // ID diambil dari kolom 0, BUKAN dari nomor baris
         selectedId = Integer.parseInt(tblPeserta.getValueAt(row, 0).toString());
 
         txtNim.setText(str(tblPeserta.getValueAt(row, 1)));
@@ -352,12 +348,11 @@ public class PesertaFrame extends JFrame {
         txtNoHp.setText(str(tblPeserta.getValueAt(row, 5)));
         txtEmail.setText(str(tblPeserta.getValueAt(row, 6)));
 
-        btnSimpan.setEnabled(false);   // data lama dipilih: pakai Ubah, bukan Simpan
+        btnSimpan.setEnabled(false);
         btnUbah.setEnabled(true);
         btnHapus.setEnabled(true);
     }
 
-    // CREATE
     private void btnSimpanActionPerformed() {
         if (!validateForm()) {
             return;
@@ -378,7 +373,6 @@ public class PesertaFrame extends JFrame {
         }
     }
 
-    // UPDATE
     private void btnUbahActionPerformed() {
         if (selectedId <= 0) {
             JOptionPane.showMessageDialog(this,
@@ -404,7 +398,6 @@ public class PesertaFrame extends JFrame {
         }
     }
 
-    // DELETE + konfirmasi
     private void btnHapusActionPerformed() {
         if (selectedId <= 0) {
             JOptionPane.showMessageDialog(this,
@@ -432,14 +425,12 @@ public class PesertaFrame extends JFrame {
         }
     }
 
-    // RESET
     private void btnResetActionPerformed() {
         txtCari.setText("");
         loadTable();
         clearForm();
     }
 
-    // SEARCH
     private void btnCariActionPerformed() {
         String keyword = txtCari.getText().trim();
         try {
@@ -455,7 +446,7 @@ public class PesertaFrame extends JFrame {
         }
     }
 
-    // CETAK LAPORAN JASPERSOFT STUDIO
+    // CETAK LAPORAN DARI REPORT SERVICE + FILE .JASPER DI src/main/resources
     private void btnCetakActionPerformed() {
         ReportService.tampilkanLaporanPeserta();
     }

@@ -3,8 +3,10 @@ package view;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.net.URL;
+import java.sql.Date;
 import javax.swing.*;
 import model.User;
+import report.ReportService;
 import util.UserSession;
 import util.WindowManager;
 
@@ -27,6 +29,7 @@ public class DashboardFrame extends JFrame {
 
     private JMenuItem miLaporanPeserta;
     private JMenuItem miLaporanPendaftaran;
+    private JMenuItem miLaporanPembayaran;
 
     private JMenuItem miLogout;
     private JMenuItem miTutup;
@@ -86,8 +89,11 @@ public class DashboardFrame extends JFrame {
         menuLaporan.setForeground(Color.WHITE);
         miLaporanPeserta = new JMenuItem("Laporan Peserta");
         miLaporanPendaftaran = new JMenuItem("Laporan Pendaftaran");
+        miLaporanPembayaran = new JMenuItem("Laporan Pembayaran");
+        
         menuLaporan.add(miLaporanPeserta);
         menuLaporan.add(miLaporanPendaftaran);
+        menuLaporan.add(miLaporanPembayaran);
         menuBar.add(menuLaporan);
 
         // Menu Keluar
@@ -187,21 +193,92 @@ public class DashboardFrame extends JFrame {
         miKursus.setBackground(menuBgColor); miKursus.setOpaque(true); 
         miKelas.setBackground(menuBgColor); miKelas.setOpaque(true);
 
-        // Event Listeners Navigasi
+        // Event Listeners Navigasi Master
         miPeserta.addActionListener(e -> WindowManager.open(PesertaFrame.class, PesertaFrame::new));
         miInstruktur.addActionListener(e -> WindowManager.open(InstrukturFrame.class, InstrukturFrame::new));
         miKursus.addActionListener(e -> WindowManager.open(KursusFrame.class, KursusFrame::new));
         miKelas.addActionListener(e -> WindowManager.open(KelasFrame.class, KelasFrame::new));
 
-        miPendaftaran.addActionListener(e -> JOptionPane.showMessageDialog(this, "Modul Pendaftaran sedang dikembangkan pada tahap project berikutnya."));
-        miPembayaran.addActionListener(e -> JOptionPane.showMessageDialog(this, "Modul Pembayaran sedang dikembangkan pada tahap project berikutnya."));
-        miLaporanPeserta.addActionListener(e -> JOptionPane.showMessageDialog(this, "Modul laporan diaktifkan pada Pertemuan 12 dengan Jaspersoft Studio."));
-        miLaporanPendaftaran.addActionListener(e -> JOptionPane.showMessageDialog(this, "Modul laporan diaktifkan pada Pertemuan 12 dengan Jaspersoft Studio."));
+        // Event Listeners Navigasi Transaksi
+        miPendaftaran.addActionListener(e -> WindowManager.open(FormPendaftaranKursus.class, FormPendaftaranKursus::new));
+        miPembayaran.addActionListener(e -> JOptionPane.showMessageDialog(this, "Modul Pembayaran sedang dikembangkan pada tahap berikutnya."));
 
+        // Event Listeners Navigasi Laporan
+        miLaporanPeserta.addActionListener(this::miLaporanPesertaActionPerformed);
+        miLaporanPendaftaran.addActionListener(this::miLaporanPendaftaranActionPerformed);
+        miLaporanPembayaran.addActionListener(this::miLaporanPembayaranActionPerformed);
+
+        // Event Listeners Keluar & Popup
         miLogout.addActionListener(this::miLogoutActionPerformed);
         miTutup.addActionListener(this::miTutupActionPerformed);
         miTentang.addActionListener(e -> JOptionPane.showMessageDialog(this, "SIKURSUS Desktop\nProject PBO Program Studi Informatika"));
         miRefresh.addActionListener(e -> JOptionPane.showMessageDialog(this, "Dashboard berhasil direfresh."));
+    }
+
+    // 1. Panggil Laporan Peserta (Tanpa Parameter)
+    private void miLaporanPesertaActionPerformed(ActionEvent evt) {
+        ReportService.cetakPeserta();
+    }
+
+    // 2. Panggil Laporan Pendaftaran (Input ID Pendaftaran lalu buka JasperViewer)
+    private void miLaporanPendaftaranActionPerformed(ActionEvent evt) {
+        String inputId = JOptionPane.showInputDialog(this, 
+                "Masukkan ID Pendaftaran yang ingin dicetak:", 
+                "Filter Laporan Pendaftaran", 
+                JOptionPane.QUESTION_MESSAGE);
+
+        if (inputId != null) {
+            inputId = inputId.trim();
+            if (inputId.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "ID Pendaftaran tidak boleh kosong!");
+                return;
+            }
+            try {
+                int idPendaftaran = Integer.parseInt(inputId);
+                ReportService.cetakPendaftaran(idPendaftaran);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "ID Pendaftaran harus berupa angka!");
+            }
+        }
+    }
+
+    // 3. Panggil Laporan Pembayaran (Input Rentang Tanggal lalu buka JasperViewer)
+    private void miLaporanPembayaranActionPerformed(ActionEvent evt) {
+        JTextField txtAwal = new JTextField(10);
+        JTextField txtAkhir = new JTextField(10);
+
+        JPanel panelInput = new JPanel(new GridLayout(2, 2, 8, 8));
+        panelInput.add(new JLabel("Tanggal Awal (yyyy-MM-dd):"));
+        panelInput.add(txtAwal);
+        panelInput.add(new JLabel("Tanggal Akhir (yyyy-MM-dd):"));
+        panelInput.add(txtAkhir);
+
+        int result = JOptionPane.showConfirmDialog(this, panelInput, 
+                "Filter Laporan Pembayaran", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            String strAwal = txtAwal.getText().trim();
+            String strAkhir = txtAkhir.getText().trim();
+
+            if (strAwal.isEmpty() || strAkhir.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Tanggal awal dan tanggal akhir tidak boleh kosong!");
+                return;
+            }
+
+            try {
+                Date tglAwal = Date.valueOf(strAwal);
+                Date tglAkhir = Date.valueOf(strAkhir);
+
+                if (tglAwal.after(tglAkhir)) {
+                    JOptionPane.showMessageDialog(this, "Tanggal awal tidak boleh setelah tanggal akhir!");
+                    return;
+                }
+
+                ReportService.cetakPembayaran(tglAwal, tglAkhir);
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(this, "Format tanggal salah! Gunakan format yyyy-MM-dd (contoh: 2026-11-01).");
+            }
+        }
     }
 
     private ImageIcon loadIcon(String path) {
